@@ -1,58 +1,61 @@
 <!DOCTYPE html>
-<html>
+  <html>
 
   <style>
-      .centerHeader{
-          color:White;
-	  position: absolute;
-	  left: 50%;
-	  top: 30%;
-	  -ms-transform: translate(-50%, -50%);
-	  transform: translate(-50%, -50%);
-	  font-family: 'Comic Sans MS', cursive;
-      }
-      .StravaButton{
-          position: absolute;
-	  left: 50%;
-	  top: 42%;
-	  -ms-transform: translate(-50%, -50%);
-	  transform: translate(-50%, -50%);
-	  font-family: 'Comic Sans MS', cursive;
-	  background-color: White;
-      }
-      body{
-          background-color: rgba(252, 76, 2);
-      }
-      button{
-          font-family: inherit;
-          font-size: 1em;
-	  background-color: inherit;
-	  border:0px;
-      }
+    .centerHeader {
+      color: White;
+      position: absolute;
+      left: 50%;
+      top: 30%;
+      -ms-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+      font-family: 'Comic Sans MS', cursive;
+    }
+
+    .StravaButton {
+      position: absolute;
+      left: 50%;
+      top: 44%;
+      -ms-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+      background-image: src="https://ibb.co/Fxzfqgh";
+    }
+
+    body {
+      background-color: rgba(252, 76, 2);
+    }
+
+    
   </style>
 
   <head>
     <title>avartS+</title>
   </head>
+
   <body>
-      <h1 class = "centerHeader">avartS+ Login Page</h1>
-      <div class = "StravaButton">
-      <button type="center" onClick='window.location.replace("/login.html")'>Login with Strava</button>
-      </div>
-      <img src="https://mymodernmet.com/wp/wp-content/uploads/2022/02/strava-runner-street-art-tiger-drawing-san-francisco-1.jpeg" 
-	  style = "opacity:0.8;
-	  float: right;
-	  width: 450px;
-	  height: 495px;
-	  object-fit: cover;
-	  object-position: 100% 0;">
-      <img src="https://cdn.wareable.com/r/s/1200x/assets/images/2022/06/25111-original.jpg" 
-	  style = "opacity:0.8;
-	  float: left;
-	  width: 450px;
-	  height: 495px;
-	  object-fit: cover;">
+    <h1 class="centerHeader">avartS+</h1>
+    <div class="StravaButton">
+      <input type="image" src="https://i.ibb.co/Lk1qhn0/connect.png" onClick='window.location.replace("/src/templates/main.html")'></button>
+    </div>
+  
+    <img
+      src="https://i.ibb.co/PQrHhSn/tiger.png"
+      style="opacity:0.8;
+      float: right;
+      width: 32%;
+      object-fit: contain;
+      object-position: 40% 0;">
+    <img src="https://i.ibb.co/2YNBsMm/biker.png" style="opacity:0.8;
+      float: left;
+      width: 30%;
+      object-fit: contain;">
+    <img src="https://i.ibb.co/m8qgRMX/compatible.png" 
+      style="position: absolute;
+      left: 50%;
+      top: 95%;
+      width: 40%;
+      -ms-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);">
   </body>
-  
-  
+
 </html>

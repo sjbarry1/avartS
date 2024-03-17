@@ -91,3 +91,67 @@
 		getYearlyData();
 	</script>
 </body>
+<!DOCTYPE html>
+  <html>
+
+  <style>
+    .rectangle{
+        height: 50px;
+        width: 100%;
+        background-color: rgba(252, 76, 2);
+        color: White;
+        font-family: 'Comic Sans MS', cursive;
+        font-size: 200%;
+        padding-left: 2%;
+    }
+    .navRectangle{
+        position: absolute;
+        height: 25px;
+        width: 10%;
+        margin: 0;
+        background-color: rgba(252, 76, 2);
+        color: White;
+        font-family: 'Comic Sans MS', cursive;
+        font-size: 30%;
+    }
+    .btn{
+        position: absolute;
+        height: 50px;
+        width: 10%;
+        margin: 0;
+        background-color: rgb(252, 76, 2);
+        color: rgb(255, 255, 255);
+        font-family: 'Comic Sans MS', cursive;
+        font-size: 30%;
+        border: none;
+        display: inline-block;
+    }
+    .btn:hover{
+        background-color: black;
+    }
+  </style>
+
+  <head>
+    <title>avartS+ Homepage</title>
+  </head>
+
+  <body>
+    <div class="rectangle">
+        avartS+
+        <button class="btn" style="left:25%;" onClick='window.location.replace("/src/templates/login.html")'>Weekly Stats</button> 
+        <button class="btn" style="left:35%;" onClick='window.location.replace("/src/templates/login.html")'>Yearly Stats</button> 
+        <button class="btn" style="left:45%;" onClick='window.location.replace("/src/templates/login.html")'>Activity Type</button> 
+        <button class="btn" style="left:55%;" onClick='window.location.replace("/src/templates/login.html")'>More Info</button> 
+        <button class="btn" style="left:65%;" onClick='window.location.replace("/src/templates/login.html")'>About Us</button> 
+    </div>
+    
+    <img src="https://i.ibb.co/m8qgRMX/compatible.png" 
+      style="position: absolute;
+      left: 50%;
+      top: 97%;
+      width: 20%;
+      -ms-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);">
+  </body>
+
+</html>
