@@ -54,8 +54,11 @@ def create_app(test_config=None):
     @app.route('/logout')
     def logout():
         session.pop('access_token',default=None)
-        user_activity_data['access_token'] = None
-        return "logged out",{"Refresh": "1; url=/"}
+        return render_template("logout.html")
+    
+    @app.route('/about')
+    def about():
+        return render_template("about_us.html")
 
 
 
@@ -186,10 +189,6 @@ def create_app(test_config=None):
         return jsonify(result)
 
 
-
-
-        #response = {'hello':123,'goodbye':12345}
-        #return jsonify(response)
 
     return app
 
