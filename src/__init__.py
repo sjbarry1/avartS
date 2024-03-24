@@ -54,7 +54,11 @@ def create_app(test_config=None):
     @app.route('/logout')
     def logout():
         session.pop('access_token',default=None)
-        return "logged out",{"Refresh": "1; url=/"}
+        return render_template("logout.html")
+    
+    @app.route('/about')
+    def about():
+        return render_template("about_us.html")
 
 
     @app.route('/me/weekly_data',methods=["GET"])
@@ -80,7 +84,8 @@ def create_app(test_config=None):
         delta = 86400
         for i in range(len(json_data)):
             activity_date = json_data[i]['start_date']
-            activity_epoch = datetime.datetime(int(activity_date[0:4]),int(activity_date[5:7]),int(activity_date[8:10])).strftime("%s")
+            activity_datetime = datetime.datetime(int(activity_date[0:4]), int(activity_date[5:7]), int(activity_date[8:10]))
+            activity_epoch = int(activity_datetime.timestamp())
             diff = int(activity_epoch) - start_date
             # distance in km
             distance = json_data[i]['distance']/1000
@@ -130,7 +135,8 @@ def create_app(test_config=None):
         for index in range(len(blank_data)):
             for i in range(len(json_data[index])):
                 activity_date = json_data[index][i]['start_date']
-                activity_epoch = datetime.datetime(int(activity_date[0:4]),int(activity_date[5:7]),int(activity_date[8:10])).strftime("%s")
+                activity_datetime = datetime.datetime(int(activity_date[0:4]), int(activity_date[5:7]), int(activity_date[8:10]))
+                activity_epoch = int(activity_datetime.timestamp())
                 diff = int(activity_epoch) - start_date+year_time*index
                 # distance in km
                 distance = json_data[index][i]['distance']/1000
@@ -146,10 +152,6 @@ def create_app(test_config=None):
         return jsonify(result)
 
 
-
-
-        #response = {'hello':123,'goodbye':12345}
-        #return jsonify(response)
 
     return app
 
