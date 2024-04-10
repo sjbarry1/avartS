@@ -1,59 +1,86 @@
-<head>
-	<script src="https://cdn.plot.ly/plotly-2.30.0.min.js" charset="utf-8"></script>
-</head>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-
-
 <!DOCTYPE html>
-  <html>
+<html>
 
-  <style>
-    .rectangle{
-        height: 50px;
-        width: 100%;
-        background-color: rgba(252, 76, 2);
-        color: White;
-        font-family: 'Poppins', sans-serif;
-        font-size: 200%;
-        padding-left: 2%;
-    }
-    .navRectangle{
-        position: absolute;
-        height: 25px;
-        width: 10%;
-        margin: 0;
-        background-color: rgba(252, 76, 2);
-        color: White;
-        font-family: 'Poppins', cursive;
-        font-size: 30%;
-    }
-    .btn{
-        position: absolute;
-        height: 50px;
-        width: 10%;
-        margin: 0;
-        background-color: rgb(252, 76, 2);
-        color: rgb(255, 255, 255);
-        font-family: 'Poppins', cursive;
-        font-size: 30%;
-        border: none;
-        display: inline-block;
-    }
-    .btn:hover{
-        background-color: black;
-    }
-	.compatible-strava {
-    width: 20%; 
-    position: absolute;
-    bottom: 10px; 
-    right: -8%;
-    transform: translateX(-50%);
-    opacity: 1;
-    transition: opacity 0.5s ease-in-out;
-  }
-	
-  </style>
+<head>
+	<title>avartS+ Homepage</title>
+	<script src="https://cdn.plot.ly/plotly-2.30.0.min.js" charset="utf-8"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"> 
+	<script src="/static/plotsScript.js"></script>
+</head>
+<<<<<<< Updated upstream
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+=======
 
+<body>
+	<div class="content">
+		<div class="rectangle">
+			avartS+ | <span id="welcomename" style="font-size: 16px;"></span>
+			<button class="btn" style="left:25%;" onclick="window.location.replace('weeklyinfo')">Weekly Stats</button> 
+			<button class="btn" style="left:35%;" onclick="window.location.replace('yearlyinfo')">Yearly Stats</button> 
+			<button class="btn" style="left:45%;" onclick="window.location.replace('/me')">Activity Type</button> 
+			<button class="btn" style="left:55%;" onclick="window.location.replace('career')">Pie Charts</button> 
+			<button class="btn" style="left:65%;" onclick="window.location.replace('about')">About Us</button> 
+			<button class="btn" style="left:85%;" onclick="window.location.replace('logout')">Log Out</button> 
+		  </div>
+		
+		
+		
+		<div class="plots">
+			<!-- <div id="weeklyPlot" class="plot">
+				<br><br><br><br><br><br><br><br><br><br><br><br>
+				<input id="week" type="week" name="week">
+			</div> -->
+			Distance by activity type per year
+			<div id="yearlyPlot" class="plot"></div>
+			<select id="activityType">
+				<option value="run">Run</option>
+				<option value="ride">Ride</option>
+				<option value="NordicSki">Nordic Ski</option>
+				<option value="RollerSki">Roller Ski</option>
+				<option value="Rowing">Rowing</option>
+				<option value="Swim">Swim</option>
+				<option value="Walk">Walk</option>
+				<option value="Hike">Hike</option>
+				<option value="Kayaking">Kayak</option>
+				<option value="Canoeing">Canoe</option>
+			  </select>
+			  <br><br>
+			Elevation by activity type per year
+			<div id="yearlyPlotElev" class="plot"></div>
+			<select id="activityType">
+				<option value="run">Run</option>
+				<option value="ride">Ride</option>
+				<option value="NordicSki">Nordic Ski</option>
+				<option value="RollerSki">Roller Ski</option>
+				<option value="Rowing">Rowing</option>
+				<option value="Swim">Swim</option>
+				<option value="Walk">Walk</option>
+				<option value="Hike">Hike</option>
+				<option value="Kayaking">Kayak</option>
+				<option value="Canoeing">Canoe</option>
+			  </select>
+			<span id="totaldist"></span>
+>>>>>>> Stashed changes
+
+		</div>
+		
+		<div class="compatible-strava">
+			<img src="https://i.ibb.co/m8qgRMX/compatible.png" alt="Compatible with Strava">
+		</div>
+
+	</div>
+
+	<script>
+		getWeeklyData();
+		getYearlyData();
+		getMonthlyDistByYear();
+		getYearlyElevation();
+		getUserInfo();
+		getAlltimeDist();
+	</script>
+
+<<<<<<< Updated upstream
   <head>
     <title>avartS+ Homepage</title>
   </head>
@@ -162,5 +189,8 @@
 	</body>
     <img src="https://i.ibb.co/m8qgRMX/compatible.png" class='compatible-strava' >
   </body>
+=======
+</body>
+>>>>>>> Stashed changes
 
 </html>

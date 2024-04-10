@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>avartS+ About Us</title>
+    <title>avartS+ Weekly Summary</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
@@ -20,21 +20,23 @@
       <button class="btn" style="left:65%;" onclick="window.location.replace('about')">About Us</button> 
       <button class="btn" style="left:85%;" onclick="window.location.replace('logout')">Log Out</button> 
     </div>
-    
     <div class = "about_and_info">
-        <h2>About Us</h2>
-        <p>We are a group of student at Michigan Technological University working on a project to help you analyze your Strava data. 
-            <br> <br><br><br> 
-          This project is a part of CS3141 Team Software Project and is not a Strava product. This website is Powererd by Strava.
-        </p>
+      <h2>Weekly Summary</h2>
+      <p>Below are several charts displaying information about specific weeks.</p>
+      <br> <br>
+  </div>
+    <div class = "plot">
+		<div id="weeklyPlot" class="plot"></div>
+    <input id="week" type="week" name="week">
     </div>
+
+    <script>
+      getWeeklyData();
+      getUserInfo();
+    </script>
 	
     <div class="compatible-strava">
       <img src="https://i.ibb.co/m8qgRMX/compatible.png" alt="Compatible with Strava">
     </div>
-
-    <script>
-      getUserInfo();
-    </script>
 </body>
 </html>
