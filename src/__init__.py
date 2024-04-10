@@ -5,11 +5,7 @@ import requests
 import numpy as np
 import pandas as pd
 
-<<<<<<< Updated upstream
 from datetime import datetime,date
-=======
-from datetime import datetime,date,timedelta
->>>>>>> Stashed changes
 
 # {access_token, data}
 user_activity_data = {}
@@ -22,11 +18,7 @@ def create_app(test_config=None):
     @app.route('/',methods=["GET"])
     def main():
         # if not already logged in: 
-<<<<<<< Updated upstream
         return render_template("login.html")
-=======
-        return render_template("/login.html")
->>>>>>> Stashed changes
 
     @app.route('/login.html',methods=["GET"])
     def login():
@@ -40,11 +32,7 @@ def create_app(test_config=None):
     def hello():
         # process "cancel"
         user_code = request.args.get('code')
-<<<<<<< Updated upstream
         req = requests.post("https://www.strava.com/api/v3/oauth/token",json={"client_id":"117096","client_secret":"68791d309fc676d56dd6c88a5a35b340e8b68a38","code":user_code,"grade_type":"authorization_code"})
-=======
-        req = requests.post("https://www.strava.com/api/v3/oauth/token",json={"client_id":"117096","client_secret":"ca6bda0bcd120f49c2c540e656b8741204cf5ef7","code":user_code,"grade_type":"authorization_code"})
->>>>>>> Stashed changes
         # store as session access_token
         access_token = req.json().get('access_token')
         if access_token != None:
@@ -61,10 +49,7 @@ def create_app(test_config=None):
             return render_template("main.html")
         except KeyError:
             return redirect("/")
-<<<<<<< Updated upstream
         return page_info
-=======
->>>>>>> Stashed changes
 
     @app.route('/logout')
     def logout():
@@ -186,7 +171,6 @@ def create_app(test_config=None):
         except KeyError:
             return redirect("/")
 
-<<<<<<< Updated upstream
 
         # find weekly range in EPOCH
         start_date = int(request.args.get('start_date'))/1000
@@ -211,29 +195,6 @@ def create_app(test_config=None):
             # round to %.2f
             result['data'][i]="{:.2f}".format(result['data'][i])
         
-=======
-
-        start_date_unix = int(request.args.get('start_date')) / 1000
-        start_date = datetime.fromtimestamp(start_date_unix).date()
-        week_time = timedelta(days=7)
-        end_date = start_date + week_time
-
-        result = {"data": [0]*7}
-        delta = timedelta(days=1)
-
-        for activity in json_data:
-            activity_date_str = activity['start_date_local']
-            activity_date = datetime.strptime(activity_date_str, "%Y-%m-%dT%H:%M:%SZ").date()
-
-            if start_date <= activity_date < end_date:
-                diff = (activity_date - start_date).days
-                distance = float(activity['distance']) / 1000  # Convert to km
-                result['data'][diff] += distance
-
-        for i in range(7):
-            result['data'][i] = "{:.2f}".format(result['data'][i])
-
->>>>>>> Stashed changes
         return jsonify(result)
 
     @app.route('/me/yearly_data',methods=["GET"])
@@ -248,7 +209,6 @@ def create_app(test_config=None):
 
         # find range in EPOCH
         start_year = 2020
-<<<<<<< Updated upstream
 
         start_date = date(2020,1,1)
         current_date = date.today()
@@ -258,31 +218,16 @@ def create_app(test_config=None):
         year_time = 31556926
         json_data = []
 
-=======
-        current_date = date.today()
-        current_year = current_date.year
-        print(current_year)
-        json_data = []
-        current_day_of_year = current_date.timetuple().tm_yday
-
-
->>>>>>> Stashed changes
         # get user data from access_token
         json_data = user_activity_data[access_token]
 
         # populate empty lists
         blank_data = []
         for i in range(current_year-start_year+1):
-<<<<<<< Updated upstream
             blank_data.append([0]*365)
         result = {"data":blank_data}
         # time for a day
         delta = 86400
-=======
-            blank_data.append([0]*366)
-        result = {"data":blank_data}
-        # time for a day
->>>>>>> Stashed changes
         for i in range(len(json_data)):
             activity_date = json_data[i]['start_date_local']
             activity_epoch = date(int(activity_date[0:4]),int(activity_date[5:7]),int(activity_date[8:10]))
@@ -290,25 +235,12 @@ def create_app(test_config=None):
             beginning_of_year = date(activity_epoch.year,1,1)
             deltas = activity_epoch - beginning_of_year
 
-<<<<<<< Updated upstream
             years_since_start_year = activity_epoch.year - start_year # (int(activity_epoch) - start_date) // year_time
             # can't use index
             day_of_year = deltas.days
             # distance in km
             distance = json_data[i]['distance']/1000
             result['data'][years_since_start_year][day_of_year]+=distance
-=======
-            years_since_start_year = activity_epoch.year - start_year 
-            day_of_year = deltas.days
-
-            if activity_epoch.year == current_year & day_of_year < current_day_of_year + 1:
-                # distance in km
-                result['data'][years_since_start_year][day_of_year]=None
-            else:
-                # distance in km
-                distance = json_data[i]['distance']/1000
-                result['data'][years_since_start_year][day_of_year]+=distance
->>>>>>> Stashed changes
 
         for index in range(current_year-start_year+1):
             result['data'][index] = list(np.cumsum(result['data'][index]))
