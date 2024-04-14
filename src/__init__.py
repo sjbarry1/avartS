@@ -7,8 +7,21 @@ import pandas as pd
 
 from datetime import datetime,date,timedelta
 
-# {access_token, data}
+import json
+ 
 user_activity_data = {}
+
+USER_DATA_PATH = "test.json"
+try:
+    with open(USER_DATA_PATH, 'r') as f:
+        # Reading from json file
+        user_activity_data = json.load(f)
+except FileNotFoundError as e:
+    pass
+
+def dump_to_file():
+    with open(USER_DATA_PATH, 'w') as f:
+        f.write(json.dumps(user_activity_data,indent=4))
 
 def create_app(test_config=None):
     # create and configure the app
@@ -23,7 +36,7 @@ def create_app(test_config=None):
     @app.route('/login.html',methods=["GET"])
     def login():
         print(session.get('access_token'))
-        if session.get('access_token') == None:
+        if session.get('access_token') == None or session.get('access_token') not in user_activity_data:
             return redirect('http://www.strava.com/oauth/authorize?client_id=117096&response_type=code&redirect_uri=http://127.0.0.1:5000/hello&approval_prompt=force&scope=read_all,activity:read_all')
         else:
             return redirect("/me")
@@ -46,9 +59,19 @@ def create_app(test_config=None):
     def me():
         try:
             access_token = session['access_token']
-            return render_template("main.html")
+            if(len(user_activity_data[access_token]) > 0):
+                return render_template("main.html")
+            else:
+                return redirect('/logout')
         except KeyError:
             return redirect("/")
+
+    @app.route('/reload')
+    def reload():
+        del user_activity_data[session.get('access_token')]
+        load_user_activities();
+        dump_to_file();
+        return redirect("/me")
 
     @app.route('/logout')
     def logout():
@@ -92,6 +115,7 @@ def create_app(test_config=None):
             end_epoch = start_epoch + epoch_year
 
             i = 1
+            print("wow")
             while True:
                 print(f"Fetching data from {start_epoch} to {end_epoch}, page {i}")
                 response = requests.get(
@@ -102,25 +126,26 @@ def create_app(test_config=None):
                     break
                 json_data.extend(data)
                 i += 1
+                if len(data) < 200:
+                    break
 
         user_activity_data[access_token] = json_data
-
+        dump_to_file()
 
 
     @app.route('/me/user_info')
     def get_user_info():
         access_token = session['access_token']
+        if session.get('firstname') == None:
 
-        headers = {
-            "Authorization": f"Bearer {access_token}"
-        }
-    
-        response = requests.get("https://www.strava.com/api/v3/athlete", headers = headers)
-        data = response.json()
-        print(data)
-        first_name = data.get('firstname')
-        print(first_name)
-        return jsonify({"firstname": first_name})
+            headers = {
+                "Authorization": f"Bearer {access_token}"
+            }
+        
+            response = requests.get("https://www.strava.com/api/v3/athlete", headers = headers)
+            data = response.json()
+            session['firstname'] = data.get('firstname')
+        return jsonify({"firstname": session.get('firstname')})
 
     @app.route('/me/weekly_data',methods=["GET"])
     def load_weekly_data():
@@ -168,12 +193,12 @@ def create_app(test_config=None):
             return response
         # get access token
         access_token = session['access_token']
+        activity_type = request.args.get('type',default=None)
 
         # find range in EPOCH
         start_year = 2020
         current_date = date.today()
         current_year = current_date.year
-        print(current_year)
         json_data = []
         current_day_of_year = current_date.timetuple().tm_yday
 
@@ -188,22 +213,23 @@ def create_app(test_config=None):
         result = {"data":blank_data}
         # time for a day
         for i in range(len(json_data)):
-            activity_date = json_data[i]['start_date_local']
-            activity_epoch = date(int(activity_date[0:4]),int(activity_date[5:7]),int(activity_date[8:10]))
+            if(json_data[i]["type"] == activity_type or activity_type == None):
+                activity_date = json_data[i]['start_date_local']
+                activity_epoch = date(int(activity_date[0:4]),int(activity_date[5:7]),int(activity_date[8:10]))
 
-            beginning_of_year = date(activity_epoch.year,1,1)
-            deltas = activity_epoch - beginning_of_year
+                beginning_of_year = date(activity_epoch.year,1,1)
+                deltas = activity_epoch - beginning_of_year
 
-            years_since_start_year = activity_epoch.year - start_year 
-            day_of_year = deltas.days
+                years_since_start_year = activity_epoch.year - start_year 
+                day_of_year = deltas.days
 
-            if activity_epoch.year == current_year & day_of_year < current_day_of_year + 1:
-                # distance in km
-                result['data'][years_since_start_year][day_of_year]=None
-            else:
-                # distance in km
-                distance = json_data[i]['distance']/1000
-                result['data'][years_since_start_year][day_of_year]+=distance
+                if activity_epoch.year == current_year & day_of_year < current_day_of_year + 1:
+                    # distance in km
+                    result['data'][years_since_start_year][day_of_year]=None
+                else:
+                    # distance in km
+                    distance = json_data[i]['distance']/1000
+                    result['data'][years_since_start_year][day_of_year]+=distance
 
         for index in range(current_year-start_year+1):
             result['data'][index] = list(np.cumsum(result['data'][index]))
@@ -401,7 +427,6 @@ def create_app(test_config=None):
                 monthly_dist[year_month] += distance
             else:
                 monthly_dist[year_month] = distance
-        print(monthly_dist)
 
         #put this in format that will work with plotly
 
@@ -457,6 +482,7 @@ def create_app(test_config=None):
             return response
         # get access token
         access_token = session['access_token']
+        activity_type = request.args.get('type',default=None)
 
         # find range in EPOCH
         start_year = 2020
@@ -476,18 +502,19 @@ def create_app(test_config=None):
         # time for a day
         delta = 86400
         for i in range(len(json_data)):
-            activity_date = json_data[i]['start_date_local']
-            activity_epoch = date(int(activity_date[0:4]),int(activity_date[5:7]),int(activity_date[8:10]))
+            if(json_data[i]["type"] == activity_type or activity_type == None):
+                activity_date = json_data[i]['start_date_local']
+                activity_epoch = date(int(activity_date[0:4]),int(activity_date[5:7]),int(activity_date[8:10]))
 
-            beginning_of_year = date(activity_epoch.year,1,1)
-            deltas = activity_epoch - beginning_of_year
+                beginning_of_year = date(activity_epoch.year,1,1)
+                deltas = activity_epoch - beginning_of_year
 
-            years_since_start_year = activity_epoch.year - start_year 
-            # can't use index
-            day_of_year = deltas.days
-            # elevation in meters
-            elev = json_data[i]['total_elevation_gain']
-            result['data'][years_since_start_year][day_of_year]+=elev
+                years_since_start_year = activity_epoch.year - start_year 
+                # can't use index
+                day_of_year = deltas.days
+                # elevation in meters
+                elev = json_data[i]['total_elevation_gain']
+                result['data'][years_since_start_year][day_of_year]+=elev
 
         for index in range(current_year-start_year+1):
             result['data'][index] = list(np.cumsum(result['data'][index]))

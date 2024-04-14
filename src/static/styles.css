@@ -40,14 +40,12 @@
 .plots {
     flex: 1;
     padding: 20px;
-    display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+	width:100%;
 }
 .plot {
-    width: 100%;
     height: 100%;
+	float: left;
 }
 .about_and_info {
     font-family: 'Poppins', sans-serif;

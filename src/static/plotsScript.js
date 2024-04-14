@@ -1,10 +1,19 @@
+const PLOT_WIDTH = 600;
+const PLOT_HEIGHT = 700
+function getSundayFromWeekNum(year,weekNum) {
+    var monday = new Date(year, 0, (1 + (weekNum - 1) * 7));
+	monday.setDate(monday.getDate() + (1-monday.getDay()));
+    return monday;
+}
 function getWeeklyData() {
-    year = 2023
-    month = 2
-    day = 2
-    const week = Date.parse(year + '-' + month + '-' + day)
-    console.log(week)
-    const url = 'http://127.0.0.1:5000/me/weekly_data?start_date=' + week
+	const year_week = document.getElementById("week").value;
+	
+	const year = parseFloat(year_week)
+	console.log(year_week)
+	const week_num = parseFloat(year_week.slice(6,8))
+	const week = getSundayFromWeekNum(parseFloat(year_week),parseFloat(week_num));
+	console.log(week)
+    const url = 'http://127.0.0.1:5000/me/weekly_data?start_date=' + week.getTime()
     fetch(url)
         .then(response => response.json())
         .then(json => {
@@ -13,7 +22,7 @@ function getWeeklyData() {
             console.log(distance_data)
             var data = [
                 {
-                    x: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                    x: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
                     y: distance_data,
                     type: 'bar',
                     text: distance_data.map(String),
@@ -24,20 +33,29 @@ function getWeeklyData() {
                 }
             ];
             var layout = {
+				autosize: true,
                 title: 'Distance per day',
                 xaxis: {
                     title: 'Day'
                 },
                 yaxis: {
                     title: 'Distance(km)'
-                }
+                },
+				width: PLOT_WIDTH*3
             }
+			var config = {responsive: true}
 
-            Plotly.newPlot('weeklyPlot', data, layout);
+            Plotly.newPlot('weeklyPlot', data, layout,config);
         })
 }
 function getYearlyData() {
-    const url = 'http://127.0.0.1:5000/me/yearly_data'
+	const div = document.getElementById("activityType");
+	url = `http://127.0.0.1:5000/me/yearly_data`
+	if(div !== null){
+		const type = div.value;
+		console.log(type);
+		url = `http://127.0.0.1:5000/me/yearly_data?type=${type}`
+	}
     fetch(url)
         .then(response => response.json())
         .then(json => {
@@ -74,7 +92,8 @@ function getYearlyData() {
                 },
                 yaxis: {
                     title: 'Distance(km)'
-                }
+                },
+				width: PLOT_WIDTH*1.5,
             }
 
             Plotly.newPlot('yearlyPlot', datas, layout);
@@ -100,8 +119,8 @@ function getPieCountData() {
 
             var layout = {
                 title: 'number of times each activity has been done',
-                height: 800,
-                width: 1000,
+                height: PLOT_HEIGHT,
+                width: PLOT_WIDTH,
                 showlegend: true
             };
 
@@ -130,8 +149,8 @@ function getPieDataTime() {
 
             var layout = {
                 title: 'time spent doing each activty type (hours)',
-                height: 800,
-                width: 1000,
+                height: PLOT_HEIGHT,
+                width: PLOT_WIDTH,
                 showlegend: true
             };
 
@@ -160,8 +179,8 @@ function getPieDataDistance() {
 
             var layout = {
                 title: 'total distance completed of each activity type (km)',
-                height: 800,
-                width: 1000,
+                height: PLOT_HEIGHT,
+                width: PLOT_WIDTH,
                 showlegend: true
             };
 
@@ -206,7 +225,8 @@ function getYearlyKudos() {
                 },
                 yaxis: {
                     title: 'kudos'
-                }
+                },
+				width: PLOT_WIDTH*1.5,
             };
 
             Plotly.newPlot('yearlyPlotKudos', datas, layout);
@@ -214,7 +234,13 @@ function getYearlyKudos() {
 }
 
 function getYearlyElevation() {
-    const url = 'http://127.0.0.1:5000/me/yearly_data_elev'
+	const div = document.getElementById("activityType");
+	url = `http://127.0.0.1:5000/me/yearly_data_elev`
+	if(div !== null){
+		const type = div.value;
+		console.log(type);
+		url = `http://127.0.0.1:5000/me/yearly_data_elev?type=${type}`
+	}
     fetch(url)
         .then(response => response.json())
         .then(json => {
@@ -251,7 +277,8 @@ function getYearlyElevation() {
                 },
                 yaxis: {
                     title: 'Elevation gain (m)'
-                }
+                },
+				width: PLOT_WIDTH*1.5,
             }
 
             Plotly.newPlot('yearlyPlotElev', datas, layout);
@@ -307,7 +334,8 @@ function getYearlyTime() {
                 },
                 yaxis: {
                     title: 'time(hours)'
-                }
+                },
+				width: PLOT_WIDTH*1.5,
             }
 
             Plotly.newPlot('yearlyTime', datas, layout);
@@ -336,8 +364,8 @@ function getPieDataElevation() {
 
             var layout = {
                 title: 'total elevation completed of each activity type (m)',
-                height: 800,
-                width: 1000,
+                height: PLOT_HEIGHT,
+                width: PLOT_WIDTH,
                 showlegend: true
             };
 
@@ -423,29 +451,11 @@ function getPieKudos() {
 
             var layout = {
                 title: 'total kudos accumulated of each activity type',
-                height: 800,
-                width: 1000,
+                height: PLOT_HEIGHT,
+                width: PLOT_WIDTH,
                 showlegend: true
             };
 
             Plotly.newPlot('pieKudos', data, layout);
         })
 }
-
-
-
-
-getUserInfo();
-getWeeklyData();
-getYearlyData();
-getPieCountData();
-getPieDataTime();
-getPieDataDistance();
-getYearlyKudos();
-getYearlyElevation();  
-getYearlyTime();
-getPieDataElevation();
-getAlltimeDist();
-getYearlyDataAct();
-getPieKudos();
-

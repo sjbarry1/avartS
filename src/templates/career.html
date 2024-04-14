@@ -7,39 +7,43 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
-    <script src="/static/plotsScript.js"></script>
+	<script src="/static/plotsScript.js"></script>
 
 </head>
 <body>
-    <div class="rectangle">
-      avartS+ | <span id="welcomename" style="font-size: 16px;"></span>
-      <button class="btn" style="left:25%;" onclick="window.location.replace('/weeklyinfo')">Weekly Stats</button> 
-      <button class="btn" style="left:35%;" onclick="window.location.replace('/yearlyinfo')">Yearly Stats</button> 
-      <button class="btn" style="left:45%;" onclick="window.location.replace('/me')">Activity Type</button> 
-      <button class="btn" style="left:55%;" onclick="window.location.replace('career')">Pie Charts</button> 
-      <button class="btn" style="left:65%;" onclick="window.location.replace('about')">About Us</button> 
-      <button class="btn" style="left:85%;" onclick="window.location.replace('logout')">Log Out</button> 
-    </div>
+	<div class="rectangle">
+
+	  avartS+ | <span id="welcomename" style="font-size: 16px;"></span>
+	  <button class="btn" style="left:25%;" onclick="window.location.replace('/weeklyinfo')">Weekly Stats</button> 
+	  <button class="btn" style="left:35%;" onclick="window.location.replace('/yearlyinfo')">Yearly Stats</button> 
+	  <button class="btn" style="left:45%;" onclick="window.location.replace('/me')">Activity Type</button> 
+	  <button class="btn" style="left:55%;" onclick="window.location.replace('career')">Pie Charts</button> 
+	  <button class="btn" style="left:65%;" onclick="window.location.replace('about')">About Us</button> 
+	  <button class="btn" style="left:80%;" onclick="window.location.replace('/reload')">Reload Activites</button> 
+	  <button class="btn" style="left:90%;" onclick="window.location.replace('logout')">Log Out</button> 
+	</div>
     <div class = "about_and_info">
       <h2>Career Summary</h2>
       <p>Below are several pie charts displaying data from all imported activities.</p>
       <br> <br>
   </div>
-    <div class = "plot">
-      <div id="piePlot" class="plot"></div>
-			<div id="piePlotTime" class="plot"></div>
-			<div id="pieDistance" class="plot"></div>
-      <div id="pieElevation" class="plot"></div>
-      <div id="pieKudos" class="plot"></div>
+      <div class = "plots" id="plot">
+		  <div id="piePlot" class="plot"></div>
+		  <div id="piePlotTime" class="plot"></div>
+		  <div id="pieDistance" class="plot"></div>
+		  <div id="pieElevation" class="plot"></div>
+		  <div id="pieKudos" class="plot"></div>
     </div>
 
     <script>
-      getPieCountData();
-      getPieDataTime();
-      getPieDataDistance();
-      getUserInfo();
-      getPieDataElevation();  
-      getPieKudos();
+		window.addEventListener('load', (event)=>{
+		  getPieCountData();
+		  getPieDataTime();
+		  getPieDataDistance();
+		  getUserInfo();
+		  getPieDataElevation();  
+		  getPieKudos();
+		})
     </script>
 	
     <div class="compatible-strava">
