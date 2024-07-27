@@ -1,42 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>avartS+ About Us</title>
-    <link rel="icon" href= "{{url_for('static',filename='favicon.ico') }}">
+    <link rel="icon" href="{{url_for('static',filename='favicon.ico') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
     <script src="/static/plotsScript.js"></script>
-
 </head>
+
 <body>
-    <div class="rectangle">
-      avartS+ | <span id="welcomename" style="font-size: 16px;"></span>
-      <button class="btn" style="left:25%;" onclick="window.location.replace('/weeklyinfo')">Weekly Stats</button> 
-      <button class="btn" style="left:35%;" onclick="window.location.replace('/yearlyinfo')">Yearly Stats</button> 
-      <button class="btn" style="left:45%;" onclick="window.location.replace('/me')">Activity Type</button> 
-      <button class="btn" style="left:55%;" onclick="window.location.replace('career')">Pie Charts</button> 
-      <button class="btn" style="left:65%;" onclick="window.location.replace('about')">About Us</button> 
-	  <button class="btn" style="left:80%;" onclick="window.location.replace('/reload')">Reload Activites</button> 
-      <button class="btn" style="left:90%;" onclick="window.location.replace('logout')">Log Out</button> 
-    </div>
-    
-    <div class = "about_and_info">
+    <div id="navbar"></div>
+    <div class="content" <div class="about_and_info">
         <h2>About Us</h2>
-        <p>We are a group of student at Michigan Technological University working on a project to help you analyze your Strava data. 
-            <br> <br><br><br> 
-          This project is a part of CS3141 Team Software Project and is not a Strava product. This website is Powererd by Strava.
+        <p>We are a group of students at Michigan Technological University working on a project to help you analyze your
+            Strava data.
+            <br><br><br><br>
+            This project is a part of CS3141 Team Software Project and is not a Strava product. This website is powered
+            by Strava.
         </p>
     </div>
-	
+    </div>
+
     <div class="compatible-strava">
-      <img src="https://i.ibb.co/m8qgRMX/compatible.png" alt="Compatible with Strava">
+        <img src="https://i.ibb.co/m8qgRMX/compatible.png" alt="Compatible with Strava">
     </div>
 
     <script>
-      getUserInfo();
+        window.addEventListener('load', (event) => {
+            loadNavbar();
+        });
     </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
+
 </html>

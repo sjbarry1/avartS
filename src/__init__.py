@@ -5,6 +5,7 @@ import requests
 import numpy as np
 import pandas as pd
 
+
 from datetime import datetime,date,timedelta
 
 import json
@@ -32,6 +33,10 @@ def create_app(test_config=None):
     def main():
         # if not already logged in: 
         return render_template("/login.html")
+    
+    @app.route('/home')
+    def home():
+        return render_template("home.html")
 
     @app.route('/login.html',methods=["GET"])
     def login():
@@ -43,28 +48,38 @@ def create_app(test_config=None):
 
     @app.route('/hello')
     def hello():
-        # process "cancel"
         user_code = request.args.get('code')
-        req = requests.post("https://www.strava.com/api/v3/oauth/token",json={"client_id":"117096","client_secret":"ca6bda0bcd120f49c2c540e656b8741204cf5ef7","code":user_code,"grade_type":"authorization_code"})
-        # store as session access_token
+        req = requests.post("https://www.strava.com/api/v3/oauth/token", json={"client_id": "117096", "client_secret": "ca6bda0bcd120f49c2c540e656b8741204cf5ef7", "code": user_code, "grant_type": "authorization_code"})
         access_token = req.json().get('access_token')
-        if access_token != None:
+        if access_token is not None:
             session['access_token'] = access_token
+            
+            headers = {
+                "Authorization": f"Bearer {access_token}"
+            }
+            response = requests.get("https://www.strava.com/api/v3/athlete", headers=headers)
+            data = response.json()
+            session['firstname'] = data.get('firstname')
+            
             load_user_activities()
             return redirect("/me")
         else:
             return redirect("/")
-        # return get_req.text
+
     @app.route('/me')
     def me():
         try:
             access_token = session['access_token']
             if(len(user_activity_data[access_token]) > 0):
-                return render_template("main.html")
+                return render_template("home.html")
             else:
                 return redirect('/logout')
         except KeyError:
             return redirect("/")
+        
+    @app.route('/activitytypeinfo')
+    def activitytypeinfo():
+        return render_template("main.html")
 
     @app.route('/reload')
     def reload():
@@ -75,8 +90,10 @@ def create_app(test_config=None):
 
     @app.route('/logout')
     def logout():
-        session.pop('access_token',default=None)
+        session.pop('access_token', default=None)
+        session.pop('firstname', default=None)
         return render_template("logout.html")
+
     
     @app.route('/about')
     def about():
@@ -90,12 +107,11 @@ def create_app(test_config=None):
     def yearlyinfo():
         return render_template("yearly.html")
     
-    @app.route('/weeklyinfo')
-    def weeklyinfo():
-        return render_template("weekly.html")
+    @app.route('/yearlypieinfo')
+    def yearlypieinfo():
+        return render_template("pieByYear.html")
     
     def load_user_activities():
-
         access_token = session['access_token']
         try:
             user_activity_data[access_token]
@@ -104,8 +120,8 @@ def create_app(test_config=None):
             pass
 
         epoch_year = 31556926  
-        start_year = 2020
-        start_year_epoch = 1577836800  #2020
+        start_year = 2009
+        start_year_epoch = 1230768000  # January 1, 2009
 
         current_year = date.today().year
         json_data = []
@@ -115,9 +131,8 @@ def create_app(test_config=None):
             end_epoch = start_epoch + epoch_year
 
             i = 1
-            print("wow")
             while True:
-                print(f"Fetching data from {start_epoch} to {end_epoch}, page {i}")
+                print(f"Fetching data from {datetime.utcfromtimestamp(start_epoch)} to {datetime.utcfromtimestamp(end_epoch)}, page {i}")
                 response = requests.get(
                     f"https://www.strava.com/api/v3/activities?before={end_epoch}&after={start_epoch}&access_token={access_token}&per_page=200&page={i}"
                 )
@@ -132,113 +147,71 @@ def create_app(test_config=None):
         user_activity_data[access_token] = json_data
         dump_to_file()
 
+    #function to find the oldest year with data for dropdowns on frontend
+    @app.route('/me/years_with_data')
+    def years_with_data():
+        access_token = session['access_token']
+        json_data = user_activity_data.get(access_token, [])
+        years = sorted(set(activity['start_date_local'][:4] for activity in json_data))
+        return jsonify(years)
+
 
     @app.route('/me/user_info')
     def get_user_info():
         access_token = session['access_token']
-        if session.get('firstname') == None:
-
+        if session.get('firstname') is None:
             headers = {
                 "Authorization": f"Bearer {access_token}"
             }
-        
-            response = requests.get("https://www.strava.com/api/v3/athlete", headers = headers)
+            response = requests.get("https://www.strava.com/api/v3/athlete", headers=headers)
             data = response.json()
             session['firstname'] = data.get('firstname')
         return jsonify({"firstname": session.get('firstname')})
-
-    @app.route('/me/weekly_data',methods=["GET"])
-    def load_weekly_data():
-        @after_this_request
-        def add_header(response):
-            # response.headers['Access-Control-Allow-Origin'] = '*'
-            response.headers.add('Access-Control-Allow-Origin', '*')
-            return response
-        # TODO check if its already loaded
-        try:
-            access_token = session['access_token']
-            json_data = user_activity_data[access_token]
-        except KeyError:
-            return redirect("/")
-
-
-        start_date_unix = int(request.args.get('start_date')) / 1000
-        start_date = datetime.fromtimestamp(start_date_unix).date()
-        week_time = timedelta(days=7)
-        end_date = start_date + week_time
-
-        result = {"data": [0]*7}
-        delta = timedelta(days=1)
-
-        for activity in json_data:
-            activity_date_str = activity['start_date_local']
-            activity_date = datetime.strptime(activity_date_str, "%Y-%m-%dT%H:%M:%SZ").date()
-
-            if start_date <= activity_date < end_date:
-                diff = (activity_date - start_date).days
-                distance = float(activity['distance']) / 1000  # Convert to km
-                result['data'][diff] += distance
-
-        for i in range(7):
-            result['data'][i] = "{:.2f}".format(result['data'][i])
-
-        return jsonify(result)
 
     @app.route('/me/yearly_data',methods=["GET"])
     def yearly_data():
         @after_this_request
         def add_header(response):
-            # response.headers['Access-Control-Allow-Origin'] = '*'
             response.headers.add('Access-Control-Allow-Origin', '*')
             return response
-        # get access token
         access_token = session['access_token']
-        activity_type = request.args.get('type',default=None)
+        activity_type = request.args.get('type', default=None)
 
-        # find range in EPOCH
-        start_year = 2020
+        start_year = 2009
         current_date = date.today()
         current_year = current_date.year
-        json_data = []
+        json_data = user_activity_data[access_token]
         current_day_of_year = current_date.timetuple().tm_yday
 
+        first_year_with_data = current_year
+        for activity in json_data:
+            activity_year = int(activity['start_date_local'][:4])
+            if activity_year < first_year_with_data:
+                first_year_with_data = activity_year
 
-        # get user data from access_token
-        json_data = user_activity_data[access_token]
-
-        # populate empty lists
         blank_data = []
-        for i in range(current_year-start_year+1):
-            blank_data.append([0]*366)
-        result = {"data":blank_data}
-        # time for a day
-        for i in range(len(json_data)):
-            if(json_data[i]["type"] == activity_type or activity_type == None):
-                activity_date = json_data[i]['start_date_local']
-                activity_epoch = date(int(activity_date[0:4]),int(activity_date[5:7]),int(activity_date[8:10]))
+        for i in range(current_year - first_year_with_data + 1):
+            blank_data.append([0] * 366)
+        result = {"data": blank_data}
 
-                beginning_of_year = date(activity_epoch.year,1,1)
+        for activity in json_data:
+            if activity["type"] == activity_type or activity_type is None:
+                activity_date = activity['start_date_local']
+                activity_epoch = date(int(activity_date[0:4]), int(activity_date[5:7]), int(activity_date[8:10]))
+
+                beginning_of_year = date(activity_epoch.year, 1, 1)
                 deltas = activity_epoch - beginning_of_year
 
-                years_since_start_year = activity_epoch.year - start_year 
+                years_since_start_year = activity_epoch.year - first_year_with_data
                 day_of_year = deltas.days
 
-                if activity_epoch.year == current_year & day_of_year < current_day_of_year + 1:
-                    # distance in km
-                    result['data'][years_since_start_year][day_of_year]=None
-                else:
-                    # distance in km
-                    distance = json_data[i]['distance']/1000
-                    result['data'][years_since_start_year][day_of_year]+=distance
+                distance = activity['distance'] / 1000
+                result['data'][years_since_start_year][day_of_year] += distance
 
-        for index in range(current_year-start_year+1):
+        for index in range(current_year - first_year_with_data + 1):
             result['data'][index] = list(np.cumsum(result['data'][index]))
             for i in range(366):
-                # round to %.2f
-                result['data'][index][i]="{:.2f}".format(result['data'][index][i])
-
-       #some logic to set values greater than current day to none for current year
-        #if current_year == 
+                result['data'][index][i] = "{:.2f}".format(result['data'][index][i])
 
         return jsonify(result)
     
@@ -246,62 +219,52 @@ def create_app(test_config=None):
     def pie_data_count():
         @after_this_request
         def add_header(response):
-            # response.headers['Access-Control-Allow-Origin'] = '*'
             response.headers.add('Access-Control-Allow-Origin', '*')
             return response
-        
-        #get access token
+
         access_token = session['access_token']
-        #get data
         json_data = user_activity_data[access_token]
+        year = request.args.get('year', default=None, type=int)
 
-        #initialize count array
         activity_counts = {}
-        #tally number of times each activity ahs been done
         for activity in json_data:
-            activity_type = activity.get('type', 'Unknown')
-            #increment if that type has been found 
-            if activity_type in activity_counts:
-                activity_counts[activity_type] += 1
-            #add to activity type if not found 
-            else:
-                activity_counts[activity_type] = 1
+            activity_year = int(activity['start_date_local'][:4])
+            if year is None or activity_year == year:
+                activity_type = activity.get('type', 'Unknown')
+                if activity_type in activity_counts:
+                    activity_counts[activity_type] += 1
+                else:
+                    activity_counts[activity_type] = 1
 
-        #format result for plotly 
         result = [{"type": activity_type, "count": count} for activity_type, count in activity_counts.items()]
 
         return jsonify(result)
-    
-    
+   
     @app.route('/me/pie_data_time')
     def pie_data_time():
         @after_this_request
         def add_header(response):
             response.headers.add('Access-Control-Allow-Origin', '*')
             return response
-        
-        #get access token, activity data
+
         access_token = session['access_token']
         json_data = user_activity_data[access_token]
-
+        year = request.args.get('year', default=None, type=int)
 
         activity_time = {}
-        #iterate through activities by type, increment by time
         for activity in json_data:
-            activity_type = activity.get('type', 'Unknown')
-            #get time, convert to hours
-            moving_time_hours = activity.get('moving_time', 0) / 3600 
-            if moving_time_hours < 1:
+            activity_year = int(activity['start_date_local'][:4])
+            if year is None or activity_year == year:
+                activity_type = activity.get('type', 'Unknown')
+                moving_time_hours = activity.get('moving_time', 0) / 3600
                 if activity_type in activity_time:
                     activity_time[activity_type] += moving_time_hours
                 else:
                     activity_time[activity_type] = moving_time_hours
 
-        # format result for plotly
         result = [{"type": activity_type, "time": round(time, 2)} for activity_type, time in activity_time.items()]
 
-        return jsonify(result)
-        
+        return jsonify(result) 
 
     @app.route('/me/pie_data_distance')
     def pie_data_distance():
@@ -309,24 +272,22 @@ def create_app(test_config=None):
         def add_header(response):
             response.headers.add('Access-Control-Allow-Origin', '*')
             return response
-        
+
         access_token = session['access_token']
         json_data = user_activity_data[access_token]
+        year = request.args.get('year', default=None, type=int)
 
         activity_distance = {}
-        #iterate by activity type, increase by distance
         for activity in json_data:
-            activity_type = activity.get('type', 'Unknown')
-            #get distance, covert to km
-            totalDistance = int(activity.get('distance', 0) / 1000)
-            #check if distance is greater than 0
-            if totalDistance > 0:
+            activity_year = int(activity['start_date_local'][:4])
+            if year is None or activity_year == year:
+                activity_type = activity.get('type', 'Unknown')
+                totalDistance = activity.get('distance', 0) / 1000
                 if activity_type in activity_distance:
                     activity_distance[activity_type] += totalDistance
                 else:
                     activity_distance[activity_type] = totalDistance
 
-        #format result for plotly
         result = [{"type": activity_type, "distance": distance} for activity_type, distance in activity_distance.items()]
 
         return jsonify(result)
@@ -337,28 +298,55 @@ def create_app(test_config=None):
         def add_header(response):
             response.headers.add('Access-Control-Allow-Origin', '*')
             return response
+
         access_token = session['access_token']
         json_data = user_activity_data[access_token]
+        year = request.args.get('year', default=None, type=int)
 
-        activity_distance = {}
-
+        activity_kudos = {}
         for activity in json_data:
-            activity_type = activity.get('type', 'Unknown')
-            #get distance, covert to km
-            totalKudos = int(activity.get('kudos_count', 0))
-            #check if distance is greater than 0
-            if totalKudos > 0:
-                if activity_type in activity_distance:
-                    activity_distance[activity_type] += totalKudos
-                else:
-                    activity_distance[activity_type] = totalKudos
+            activity_year = int(activity['start_date_local'][:4])
+            if year is None or activity_year == year:
+                activity_type = activity.get('type', 'Unknown')
+                totalKudos = activity.get('kudos_count', 0)
+                if totalKudos > 0:
+                    if activity_type in activity_kudos:
+                        activity_kudos[activity_type] += totalKudos
+                    else:
+                        activity_kudos[activity_type] = totalKudos
 
-        #format result for plotly
-        result = [{"type": activity_type, "kudos": kudos} for activity_type, kudos in activity_distance.items()]
+        result = [{"type": activity_type, "kudos": kudos} for activity_type, kudos in activity_kudos.items()]
+
+        return jsonify(result) 
+
+
+    @app.route('/me/pie_data_elevation', methods=["GET"])
+    def pie_data_elevation():
+        @after_this_request
+        def add_header(response):
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            return response
+        
+        access_token = session['access_token']
+        json_data = user_activity_data[access_token]
+        year = request.args.get('year', default=None, type=int)
+
+        activity_elevation = {}
+        for activity in json_data:
+            activity_year = int(activity['start_date_local'][:4])
+            if year is None or activity_year == year:
+                activity_type = activity.get('type', 'Unknown')
+                totalElevation = activity.get('total_elevation_gain', 0)
+                if totalElevation > 0:
+                    if activity_type in activity_elevation:
+                        activity_elevation[activity_type] += totalElevation
+                    else:
+                        activity_elevation[activity_type] = totalElevation
+        
+        result = [{"type": activity_type, "elevation": elevation} for activity_type, elevation in activity_elevation.items()]
 
         return jsonify(result)
-        
-    
+
 
     @app.route('/me/yearly_time', methods=["GET"])
     def yearly_time():
@@ -403,34 +391,34 @@ def create_app(test_config=None):
         return jsonify(result)
 
 
-    @app.route('/me/monthly_dist_grouped')
-    def monthly_dist_grouped():
-        @after_this_request
-        def add_header(response):
-            response.headers.add('Access-Control-Allow-Origin', '*')
-            return response
+    # @app.route('/me/monthly_dist_grouped')
+    # def monthly_dist_grouped():
+    #     @after_this_request
+    #     def add_header(response):
+    #         response.headers.add('Access-Control-Allow-Origin', '*')
+    #         return response
 
-        #get data
-        access_token = session['access_token']
-        json_data = user_activity_data[access_token]
+    #     #get data
+    #     access_token = session['access_token']
+    #     json_data = user_activity_data[access_token]
 
-        #declare months list
-        monthly_dist = {}
-        for activity in json_data:
-            activity_date_str = activity['start_date_local']
-            activity_date = datetime.strptime(activity_date_str, "%Y-%m-%dT%H:%M:%SZ").date()
-            year_month = (activity_date.year, activity_date.month)
+    #     #declare months list
+    #     monthly_dist = {}
+    #     for activity in json_data:
+    #         activity_date_str = activity['start_date_local']
+    #         activity_date = datetime.strptime(activity_date_str, "%Y-%m-%dT%H:%M:%SZ").date()
+    #         year_month = (activity_date.year, activity_date.month)
 
-            #get distance
-            distance = activity.get('distance', 0) /1000
-            if year_month in monthly_dist:
-                monthly_dist[year_month] += distance
-            else:
-                monthly_dist[year_month] = distance
+    #         #get distance
+    #         distance = activity.get('distance', 0) /1000
+    #         if year_month in monthly_dist:
+    #             monthly_dist[year_month] += distance
+    #         else:
+    #             monthly_dist[year_month] = distance
 
-        #put this in format that will work with plotly
+    #     #put this in format that will work with plotly
 
-        return jsonify(monthly_dist)
+    #     return jsonify(monthly_dist)
     
     @app.route('/me/yearly_kudos')
     def yearly_kudos():
@@ -440,33 +428,39 @@ def create_app(test_config=None):
             return response
 
         access_token = session['access_token']
+        activity_type = request.args.get('type', default=None)
         json_data = user_activity_data[access_token]
 
-        start_year = 2020
+        start_year = 2009
         current_date = date.today()
         current_year = current_date.year
 
+        first_year_with_data = current_year
+        for activity in json_data:
+            activity_year = int(activity['start_date_local'][:4])
+            if activity_year < first_year_with_data:
+                first_year_with_data = activity_year
+
         blank_data = []
-        for i in range(current_year - start_year + 1):
-            blank_data.append([0] * 366) 
+        for i in range(current_year - first_year_with_data + 1):
+            blank_data.append([0] * 366)
         result = {"data": blank_data}
 
         for activity in json_data:
-            activity_date = activity['start_date_local']
-            activity_epoch = date(int(activity_date[0:4]), int(activity_date[5:7]), int(activity_date[8:10]))
+            if activity["type"] == activity_type or activity_type is None:
+                activity_date = activity['start_date_local']
+                activity_epoch = date(int(activity_date[0:4]), int(activity_date[5:7]), int(activity_date[8:10]))
 
-            beginning_of_year = date(activity_epoch.year, 1, 1)
-            deltas = activity_epoch - beginning_of_year
+                beginning_of_year = date(activity_epoch.year, 1, 1)
+                deltas = activity_epoch - beginning_of_year
 
-            years_since_start_year = activity_epoch.year - start_year
-            day_of_year = deltas.days
+                years_since_start_year = activity_epoch.year - first_year_with_data
+                day_of_year = deltas.days
 
-            #count kudos
-            kudos = int(activity['kudos_count'])
-            result['data'][years_since_start_year][day_of_year] += kudos
+                kudos = int(activity['kudos_count'])
+                result['data'][years_since_start_year][day_of_year] += kudos
 
-        #accumulate
-        for index in range(current_year - start_year + 1):
+        for index in range(current_year - first_year_with_data + 1):
             result['data'][index] = list(np.cumsum(result['data'][index]))
             for i in range(366):
                 result['data'][index][i] = "{:.2f}".format(result['data'][index][i])
@@ -477,52 +471,52 @@ def create_app(test_config=None):
     def yearly_data_elev():
         @after_this_request
         def add_header(response):
-            # response.headers['Access-Control-Allow-Origin'] = '*'
             response.headers.add('Access-Control-Allow-Origin', '*')
             return response
         # get access token
         access_token = session['access_token']
-        activity_type = request.args.get('type',default=None)
+        activity_type = request.args.get('type', default=None)
 
         # find range in EPOCH
-        start_year = 2020
-        start_date = date(2020,1,1)
+        start_year = 2009
         current_date = date.today()
         current_year = current_date.year
-        json_data = []
-
-        # get user data from access_token
         json_data = user_activity_data[access_token]
+
+        # determine the first year with recorded data
+        first_year_with_data = current_year
+        for activity in json_data:
+            activity_year = int(activity['start_date_local'][:4])
+            if activity_year < first_year_with_data:
+                first_year_with_data = activity_year
 
         # populate empty lists
         blank_data = []
-        for i in range(current_year-start_year+1):
-            blank_data.append([0]*366)
-        result = {"data":blank_data}
-        # time for a day
-        delta = 86400
-        for i in range(len(json_data)):
-            if(json_data[i]["type"] == activity_type or activity_type == None):
-                activity_date = json_data[i]['start_date_local']
-                activity_epoch = date(int(activity_date[0:4]),int(activity_date[5:7]),int(activity_date[8:10]))
+        for i in range(current_year - first_year_with_data + 1):
+            blank_data.append([0] * 366)
+        result = {"data": blank_data}
 
-                beginning_of_year = date(activity_epoch.year,1,1)
+        for activity in json_data:
+            if activity["type"] == activity_type or activity_type is None:
+                activity_date = activity['start_date_local']
+                activity_epoch = date(int(activity_date[0:4]), int(activity_date[5:7]), int(activity_date[8:10]))
+
+                beginning_of_year = date(activity_epoch.year, 1, 1)
                 deltas = activity_epoch - beginning_of_year
 
-                years_since_start_year = activity_epoch.year - start_year 
-                # can't use index
+                years_since_start_year = activity_epoch.year - first_year_with_data
                 day_of_year = deltas.days
-                # elevation in meters
-                elev = json_data[i]['total_elevation_gain']
-                result['data'][years_since_start_year][day_of_year]+=elev
 
-        for index in range(current_year-start_year+1):
+                elev = activity['total_elevation_gain']
+                result['data'][years_since_start_year][day_of_year] += elev
+
+        for index in range(current_year - first_year_with_data + 1):
             result['data'][index] = list(np.cumsum(result['data'][index]))
             for i in range(366):
-                # round to %.2f
-                result['data'][index][i]="{:.2f}".format(result['data'][index][i])
+                result['data'][index][i] = "{:.2f}".format(result['data'][index][i])
 
         return jsonify(result)
+
     
     
     @app.route('/me/annual_cumulative_time',methods=["GET"])
@@ -531,76 +525,45 @@ def create_app(test_config=None):
         def add_header(response):
             response.headers.add('Access-Control-Allow-Origin', '*')
             return response
-        # get access token
         access_token = session['access_token']
+        activity_type = request.args.get('type', default=None)
 
-        # find range in EPOCH
-        start_year = 2020
+        start_year = 2009
         current_date = date.today()
         current_year = current_date.year
-        json_data = []
-
-        # get user data from access_token
         json_data = user_activity_data[access_token]
 
-        # populate empty lists
+        first_year_with_data = current_year
+        for activity in json_data:
+            activity_year = int(activity['start_date_local'][:4])
+            if activity_year < first_year_with_data:
+                first_year_with_data = activity_year
+
         blank_data = []
-        for i in range(current_year-start_year+1):
-            blank_data.append([0]*366)
-        result = {"data":blank_data}
-        # time for a day
-        delta = 86400
-        for i in range(len(json_data)):
-            activity_date = json_data[i]['start_date_local']
-            activity_epoch = date(int(activity_date[0:4]),int(activity_date[5:7]),int(activity_date[8:10]))
+        for i in range(current_year - first_year_with_data + 1):
+            blank_data.append([0] * 366)
+        result = {"data": blank_data}
 
-            beginning_of_year = date(activity_epoch.year,1,1)
-            deltas = activity_epoch - beginning_of_year
+        for activity in json_data:
+            if activity["type"] == activity_type or activity_type is None:
+                activity_date = activity['start_date_local']
+                activity_epoch = date(int(activity_date[0:4]), int(activity_date[5:7]), int(activity_date[8:10]))
 
-            years_since_start_year = activity_epoch.year - start_year 
-            # can't use index
-            day_of_year = deltas.days
-            # time in hours
-            time = json_data[i]['moving_time'] / 3600
-            result['data'][years_since_start_year][day_of_year]+=time
+                beginning_of_year = date(activity_epoch.year, 1, 1)
+                deltas = activity_epoch - beginning_of_year
 
-        for index in range(current_year-start_year+1):
+                years_since_start_year = activity_epoch.year - first_year_with_data
+                day_of_year = deltas.days
+
+                time = activity['moving_time'] / 3600
+                result['data'][years_since_start_year][day_of_year] += time
+
+        for index in range(current_year - first_year_with_data + 1):
             result['data'][index] = list(np.cumsum(result['data'][index]))
             for i in range(366):
-                # round to %.2f
-                result['data'][index][i]="{:.2f}".format(result['data'][index][i])
+                result['data'][index][i] = "{:.2f}".format(result['data'][index][i])
 
-        return jsonify(result)
-    
-
-    @app.route('/me/pie_data_elevation', methods=["GET"])
-    def pie_data_elevation():
-        @after_this_request
-        def add_header(response):
-            response.headers.add('Access-Control-Allow-Origin', '*')
-            return response
-        
-        access_token = session['access_token']
-        json_data = user_activity_data[access_token]
-
-        activity_distance = {}
-        #iterate by activity type, increase by elevation
-        for activity in json_data:
-            activity_type = activity.get('type', 'Unknown')
-            #get elevation
-            totalDistance = int(activity.get('total_elevation_gain', 0))
-            #check if elevation is greater than 0
-            if totalDistance > 0:
-                if activity_type in activity_distance:
-                    activity_distance[activity_type] += totalDistance
-                else:
-                    activity_distance[activity_type] = totalDistance
-
-        #format result for plotly
-        result = [{"type": activity_type, "distance": distance} for activity_type, distance in activity_distance.items()]
-
-        return jsonify(result) 
-    
+        return jsonify(result)   
 
     return app
 

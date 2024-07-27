@@ -1,62 +1,98 @@
+/* styles.css */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.navbar {
+    background-color: rgba(252, 76, 2, 0.9);
+    font-size: 1rem;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.navbar-nav .nav-item .nav-link {
+    color: white;
+    margin: 0 10px;
+    padding: 10px 15px;
+    transition: background-color 0.3s, color 0.3s;
+    border-radius: 5px;
+}
+
+.navbar-nav .nav-item .nav-link:hover {
+    background-color: white;
+    color: rgba(252, 76, 2);
+}
+
+.navbar-toggler {
+    border: none;
+    color: white;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba%28255, 255, 255, 1%29' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+}
+
+.navbar-text {
+    color: white;
+    font-size: 1rem;
+    margin-right: 10px;
+}
+
+.nav-link.btn-custom {
+    color: white;
+    background-color: transparent;
+    border: 1px solid white;
+    border-radius: 5px;
+    padding: 5px 10px;
+    margin-left: 10px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.nav-link.btn-custom:hover {
+    background-color: white;
+    color: rgba(252, 76, 2);
+}
+
 .content {
     display: flex;
     flex-direction: column;
     height: 100%;
+    padding: 20px;
 }
-.rectangle{
-    height: 50px;
-    width: 100%;
-    background-color: rgba(252, 76, 2);
-    color: White;
-    font-family: 'Poppins', sans-serif;
-    font-size: 200%;
-    padding-left: 2%;
-}
-.navRectangle{
-    position: absolute;
-    height: 25px;
-    width: 10%;
-    margin: 0;
-    background-color: rgba(252, 76, 2);
-    color: White;
-    font-family: 'Poppins', cursive;
-    font-size: 30%;
-}
-.btn{
-    position: absolute;
-    height: 50px;
-    width: 10%;
-    margin: 0;
-    background-color: rgb(252, 76, 2);
-    color: rgb(255, 255, 255);
-    font-family: 'Poppins', cursive;
-    font-size: 30%;
-    border: none;
-    display: inline-block;
-}
-.btn:hover{
-    background-color: black;
-}
+
 .plots {
     flex: 1;
-    padding: 20px;
+    display: flex;
     flex-direction: column;
-	width:100%;
+    width: 100%;
 }
+
 .plot {
     height: 100%;
-	float: left;
+    margin-bottom: 20px;
 }
+
 .about_and_info {
     font-family: 'Poppins', sans-serif;
+    margin: 20px 0;
 }
+
 .compatible-strava {
-    max-width: 25%; 
+    max-width: 25%;
     opacity: 1;
     transition: opacity 0.5s ease-in-out;
-    position:fixed;
-    right:0;
-    bottom:0;
-    margin:0;
-    padding:0;
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
 }

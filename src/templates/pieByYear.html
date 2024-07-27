@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>avartS+ Information</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    <script src="/static/plotsScript.js"></script>
+</head>
+<body>
+    <div id="navbar"></div>
+
+    <div class="about_and_info">
+        <h2>Career Summary</h2>
+        <p>Select a year, and pie charts of data from only that year will be created below.</p>
+        <br><br>
+        <label for="yearSelect">Select Year:</label>
+        <select id="yearSelect" onchange="updatePieCharts()">
+        </select>
+        <br><br>
+    </div>
+    <div class="plots" id="plot">
+        <div id="piePlot" class="plot"></div>
+        <div id="piePlotTime" class="plot"></div>
+        <div id="pieDistance" class="plot"></div>
+        <div id="pieElevation" class="plot"></div>
+        <div id="pieKudos" class="plot"></div>
+    </div>
+
+    <script>
+        
+        window.addEventListener('load', (event) => {
+            loadNavbar();
+            getYearsWithData();
+        });
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
